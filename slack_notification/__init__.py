@@ -35,6 +35,26 @@ class SlackNotifcationPlugin(Component):
 		#template = '%(project)s %(rev)s %(author)s: %(logmsg)s'
 		template = '_%(project)s_ :incoming_envelope: \n%(type)s <%(url)s|%(id)s>: %(summary)s [*%(action)s* by @%(author)s]'
 
+		cced=[];
+
+		if values['reporter'] and values['reporter'] not in cced and values['reporter'] != values['author']:
+			cced.append(values['reporter'])
+
+		if values['owner']:
+			splitOwner = values['owner'].replace(" ","").split(",")
+			for owner in splitOwner:
+				if owner not in cced and owner != values['author']:
+                                        cced.append(owner)
+		
+		if values['cc']:
+			splitCC = values['cc'].replace(" ","").split(",")
+			for cc in splitCC:
+				if cc not in cced and cc != values['author']:
+					cced.append(cc)
+
+		if len(cced):
+			template += ' [CC: @' + ', @'.join(cced) + ' ] '
+
 		attachments = []
 
 		if values['action'] == 'closed':
@@ -51,7 +71,7 @@ class SlackNotifcationPlugin(Component):
 
 		if values.get('changes', False):
 			attachments.append({
-				'title': ':small_red_triangle: Changes',
+				'title': 'Changes',
 				'text': values['changes']
 			})
 
